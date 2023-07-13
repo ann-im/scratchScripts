@@ -1,11 +1,39 @@
+#include "consts.hpp"
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_log.h"
 #include "nvs.h"
 #include "nvs_flash.h"
 
 #define NVS_TAG     "NVS"
 #define NVS_HANDLE  "nvsStorage"
+
+extern "C" {
+    void app_main();
+}
+
+namespace intermode {
+
+namespace nvs {
+
+/*
+ * Abstract base non-volative storage hardware abstraction layer class
+ */
+class Abstract_NVS_HalTypeDef {
+    public:
+        virtual 
+};
+
+/*
+ * ESP32 Non-Volative Storage hardware abstraction layer class
+ */
+class ESP_NVS_HalTypeDef : public Abstract_NVS_HalTypeDef {
+
+};
+
+}   // namespace nvs
+
+}   // namespace intermode
 
 void app_main(void)
 {
