@@ -4,7 +4,8 @@
 #include "driver/gpio.h"
 
 #define BLINK_GPIO 32
-#define TOGGLE_HALFRATE 500
+#define TOGGLE_OPENTIME     9200
+#define TOGGLE_CLOSETIME    800
 #define ONE_MINUTE 60000
 
 void app_main(void)
@@ -15,11 +16,13 @@ void app_main(void)
     int iterations = 0;
     TickType_t last_wake_time = xTaskGetTickCount();
 
+    printf("Starting Loop\n");
+
     while(1) {
-        gpio_set_level(BLINK_GPIO, 0);
-        vTaskDelay(TOGGLE_HALFRATE / portTICK_PERIOD_MS);
         gpio_set_level(BLINK_GPIO, 1);
-        vTaskDelay(TOGGLE_HALFRATE / portTICK_PERIOD_MS);
+        vTaskDelay(TOGGLE_CLOSETIME / portTICK_PERIOD_MS);
+        gpio_set_level(BLINK_GPIO, 0);
+        vTaskDelay(TOGGLE_OPENTIME / portTICK_PERIOD_MS);
 
         iterations++;
 
