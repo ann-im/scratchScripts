@@ -26,10 +26,23 @@ namespace intermode {
  ******************************************************************************/
 enum ReturnCodes {
     keReturnNormal = 0,     // Execution successful
+    keReturnError,          // Generic error
+    keReturnInvalid,        // Invalid parameter
     keReturnTimeout,        // Timeout error
     keReturnFull,           // Target object full
+    keReturnMemory,         // Memory error
+    keReturnReinit,         // Target object needs reinitialization
+    keReturnNotInitialized, // Target object not initialized
     keReturnNotReady,       // Target object not ready
-    keReturnError,          // Generic error
+    keReturnNotFound,       // Target object not found
+    keReturnVersion,        // Version mismatch
+    keReturnSize,           // Size mismatch
+    keReturnName,           // Name invalid
+    keReturnPermission,     // Incorrect permissions
+
+    // NVS-specific return codes
+    keReturnPartitionNotFound,  // NVS partition not found
+    keReturnNamespaceNotFound,  // NVS namespace not found
 };
 
 // Relay/contactor states
