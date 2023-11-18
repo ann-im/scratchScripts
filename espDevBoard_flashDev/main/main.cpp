@@ -7,7 +7,7 @@
 #include "stdint.h"
 
 #define NVS_TAG     "NVS"
-#define NVS_HANDLE  "nvsStorage"
+#define NVS_NAMESPACE  "nvsStorage"
 
 extern "C" {
     void app_main();
@@ -471,7 +471,7 @@ void app_main(void)
     }
 
     uint32_t my_handle;
-    xErr = xNvsHal.eOpen(NVS_HANDLE, xNvsHal.READWRITE, &my_handle);
+    xErr = xNvsHal.eOpen(NVS_NAMESPACE, xNvsHal.READWRITE, &my_handle);
 
     if (xErr == keReturnNormal) {
          // Read
@@ -503,6 +503,43 @@ void app_main(void)
 
         xNvsHal.eCommit(my_handle);
         xNvsHal.eClose(my_handle);
+    }
+
+    
+
+    uint32_t my_handle_2;
+    xErr = xNvsHal.eOpen("nvsStorage2", xNvsHal.READWRITE, &my_handle_2);
+
+    if (xErr == keReturnNormal) {
+         // Read
+        ESP_LOGI(NVS_TAG, "Reading restart counter from NVS ... ");
+        int32_t restart_counter = 0; // value will default to 0, if not set yet in NVS
+        err = xNvsHal.eRead(my_handle_2, "restart_counter", &restart_counter);
+
+        switch (err) {
+            case ESP_OK:
+                ESP_LOGI(NVS_TAG, "Done");
+                ESP_LOGI(NVS_TAG, "Restart counter = %d", restart_counter);
+                break;
+            case ESP_ERR_NVS_NOT_FOUND:
+                ESP_LOGE(NVS_TAG, "Key does not exist");
+                break;
+            default :
+                ESP_LOGE(NVS_TAG, "Error (%s) reading!", esp_err_to_name(err));
+        }
+
+        // Write
+        ESP_LOGI(NVS_TAG, "Updating restart counter in NVS ... ");
+        restart_counter++;
+        xErr = xNvsHal.eWrite(my_handle_2, "restart_counter", restart_counter);
+        if(err != keReturnNormal) {
+            ESP_LOGE(NVS_TAG, "Error (%s) writing!", esp_err_to_name(err));
+        } else {
+            ESP_LOGI(NVS_TAG, "Done");
+        }
+
+        xNvsHal.eCommit(my_handle_2);
+        xNvsHal.eClose(my_handle_2);
     }
 
     // Restart module
