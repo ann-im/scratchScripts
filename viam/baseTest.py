@@ -1,5 +1,6 @@
 import asyncio
 import time
+import os
 
 from viam.robot.client import RobotClient
 from viam.rpc.dial import Credentials, DialOptions
@@ -9,11 +10,15 @@ from viam.services.motion import MotionClient
 
 
 async def connect():
+    api_key = os.environ.get('ENV_API_KEY')
+    api_key_id = os.environ.get('ENV_API_KEY_ID')
+    host = os.environ.get('ENV_HOST')
+
     opts = RobotClient.Options.with_api_key(
-      api_key='ENV_API_KEY',
-      api_key_id='ENV_API_KEY_ID'
+      api_key=api_key,
+      api_key_id=api_key_id
     )
-    return await RobotClient.at_address('modal-orin-main.th85mxrqh1.viam.cloud', opts)
+    return await RobotClient.at_address(host, opts)
 
 async def main():
     robot = await connect()
