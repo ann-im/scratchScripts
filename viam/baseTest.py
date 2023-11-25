@@ -32,22 +32,30 @@ async def main():
 
     print('Resources:')
     print(robot.resource_names)
-  
-    # intermode-base
-    intermode_base = Base.from_robot(robot, "intermode-base")
-    intermode_base_return_value = await intermode_base.is_moving()
-    print(f"intermode-base is_moving return value: {intermode_base_return_value}")
-
-    print("start move")
-    linearVec = Vector3(x=0.0, y=300.0, z=0.0)
-    angularVec = Vector3(x=0.0, y=0.0, z=0.0)
-    await intermode_base.set_velocity(linearVec, angularVec)
-
-    time.sleep(5)
     
-    print("stop move")
-    linearVec.y = 0.0
-    await intermode_base.set_velocity(linearVec, angularVec)
+    # imu
+    imu = MovementSensor.from_robot(robot, "imu")
+
+    while True:
+        imu_return_value = await imu.get_linear_acceleration()
+        print(f"imu get_linear_acceleration return value:\n{imu_return_value}")
+        time.sleep(1)
+  
+    # # intermode-base
+    # intermode_base = Base.from_robot(robot, "intermode-base")
+    # intermode_base_return_value = await intermode_base.is_moving()
+    # print(f"intermode-base is_moving return value: {intermode_base_return_value}")
+
+    # print("start move")
+    # linearVec = Vector3(x=0.0, y=300.0, z=0.0)
+    # angularVec = Vector3(x=0.0, y=0.0, z=0.0)
+    # await intermode_base.set_velocity(linearVec, angularVec)
+
+    # time.sleep(5)
+    
+    # print("stop move")
+    # linearVec.y = 0.0
+    # await intermode_base.set_velocity(linearVec, angularVec)
   
     """
     # Note this function requires additional arguments.
