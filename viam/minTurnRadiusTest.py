@@ -138,16 +138,20 @@ def enforce_min_turn_radius_fraction(linear, angular, min_radius, top_speed):
     if abs(current_radius) < min_radius:
         # Adjust linear velocity
         adjusted_v = omega_rad * min_radius
-        adjusted_linear = min(adjusted_v / top_speed, 1)
+        adjusted_linear = max(min(adjusted_v / top_speed, 1), -1)
 
         # Adjust angular velocity if linear velocity is capped at 1 (100%)
-        if adjusted_linear == 1:
+        if abs(adjusted_linear) == 1:
             # Use the capped linear velocity to calculate adjusted angular velocity
             capped_v = top_speed
             adjusted_omega_rad = capped_v / min_radius
             adjusted_angular = adjusted_omega_rad / top_speed
         else:
             adjusted_angular = angular
+
+        # Linear should keep sign to preserve overall direction
+        adjusted_linear = math.copysign(adjusted_linear, linear)
+        adjusted_angular = math.copysign(adjusted_angular, angular)
     else:
         # No adjustment needed
         return linear, angular
@@ -179,14 +183,15 @@ def calculate_turn_radius_percent(linear_percent, angular_percent, top_speed):
         return float('inf')
 
     # Calculate turn radius
-    turn_radius = v / omega_rad
+    # Absolute value as turn radius is always positive
+    turn_radius = abs(v / omega_rad)
 
     return turn_radius
 
 # Example usage
 original_v = 0.0     # 1 m/s
-original_omega = 10  # 30 degrees/s (left turn)
-min_radius = 10.0     # 2 meters
+original_omega = -10  # 30 degrees/s (left turn)
+min_radius = 2.0     # 2 meters
 
 adjusted_v = enforce_min_turn_radius(original_v, original_omega, min_radius)
 turn_radius = calculate_turn_radius(adjusted_v, original_omega)
@@ -197,8 +202,8 @@ print("Adjusted Angular Velocity:", original_omega, "degrees/s")
 print("Turn Radius:", turn_radius, "m")
 
 # Example usage
-linear_velocity_percent = 0.5  # 50% of top speed
-angular_velocity_percent = 0.0  # 30% of top speed (scaled)
+linear_velocity_percent = 0.0  # 50% of top speed
+angular_velocity_percent = -1.0  # 30% of top speed (scaled)
 top_speed = 3.0                # 1 m/s
 
 adjusted_linear_percent, adjusted_angular_percent = enforce_min_turn_radius_fraction(
