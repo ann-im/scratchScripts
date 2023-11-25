@@ -31,6 +31,7 @@ import time
 import argparse
 import asyncio
 import signal
+import numpy as np
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -45,6 +46,7 @@ DEFAULT_SAMPLE_PERIOD_REPLAY = 1.0  # seconds
 MOVEMENT_SENSOR_NAME = "navMove"
 NAVIGATION_SERVICE_NAME = "navServ"
 BASE_NAME = "intermode-base"
+WAYPOINT_ANGLE_MAX = 150  # degrees
 
 
 # Function to establish a connection to the robot client
@@ -149,6 +151,36 @@ async def replay_cleanup_and_exit(nav_serv, base, file):
     print("Cleanup done. Exiting.")
     sys.exit(0)
 
+def calculate_angle(p1, p2, p3):
+    """
+    Calculate the angle at p2 formed by the line segments p1-p2 and p2-p3.
+    The points are in the format [latitude, longitude].
+    """
+    # Convert to radians
+    p1 = np.radians(p1)
+    p2 = np.radians(p2)
+    p3 = np.radians(p3)
+
+    # Calculate the differences in the coordinates
+    delta_p1_p2 = p2 - p1
+    delta_p2_p3 = p3 - p2
+
+    # Check for zero differences to avoid division by zero
+    if np.isclose(delta_p1_p2[0], 0.0) or np.isclose(delta_p2_p3[0], 0.0):
+        return 180  # Return a straight line angle if there's no significant change in latitude
+
+    # Calculate the tangents
+    tan1 = np.tan(delta_p1_p2[1]) / np.tan(delta_p1_p2[0])
+    tan2 = np.tan(delta_p2_p3[1]) / np.tan(delta_p2_p3[0])
+
+    # Calculate the angle in radians
+    angle = np.arctan(np.abs((tan2 - tan1) / (1 + tan1 * tan2)))
+
+    # Convert to degrees
+    angle = np.degrees(angle)
+
+    return angle
+
 # Function to log waypoints with a given sample period
 async def log_waypoints(mode, file_path, robot, sample_period):
     """
@@ -179,6 +211,8 @@ async def log_waypoints(mode, file_path, robot, sample_period):
     signal.signal(signal.SIGINT, signal_handler)
 
     file.write("timestamp, latitude, longitude, altitude\n")
+    prevPoints = [[], []]
+    prevLogStr = ""
     while True:
         timestamp = datetime.now().timestamp()
         position = await nav_move.get_position()
@@ -188,7 +222,26 @@ async def log_waypoints(mode, file_path, robot, sample_period):
             paths = await nav_serv.get_paths()
             positionStr = f"{positionStr}, {paths}"
 
-        file.write(f"{timestamp}, {positionStr}\n")
+        logStr = f"{timestamp}, {positionStr}\n"
+
+        # Filter out points with an angle less than WAYPOINT_ANGLE_MAX
+        if len(prevPoints[0]) == 0:
+            prevPoints[0] = position[0]
+            file.write(logStr)
+        else:
+            if len(prevPoints[1]) != 0:
+            # Calculate the angle between the three points
+                angle = calculate_angle(prevPoints[0], prevPoints[1], position[0])
+
+                # If the angle is greater than or equal to WAYPOINT_ANGLE_MAX, store position
+                #  Otherwise, replace the most recent point with the current position
+                if angle >= WAYPOINT_ANGLE_MAX:
+                    prevPoints[0] = prevPoints[1]
+                    file.write(prevLogStr)
+            
+            prevPoints[1] = position[0]
+            
+        prevLogStr = logStr
         print(positionStr)
         
         time.sleep(sample_period)
