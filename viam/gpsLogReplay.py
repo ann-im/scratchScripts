@@ -43,10 +43,10 @@ from viam.services.navigation import NavigationClient, Mode, GeoPoint
 # Constants
 DEFAULT_SAMPLE_PERIOD_LOG = 0.2  # seconds
 DEFAULT_SAMPLE_PERIOD_REPLAY = 1.0  # seconds
-MOVEMENT_SENSOR_NAME = "navMove"
+MOVEMENT_SENSOR_NAME = "gps"
 NAVIGATION_SERVICE_NAME = "navServ"
 BASE_NAME = "intermode-base"
-WAYPOINT_ANGLE_MAX = 150  # degrees
+WAYPOINT_ANGLE_MAX = 15  # degrees
 
 
 # Function to establish a connection to the robot client
@@ -130,10 +130,12 @@ async def log_cleanup_and_exit(nav_move, file):
         file (file): File object for the replay log.
     """
     print("Exiting logging")
-    await nav_move.set_mode(Mode.MODE_MANUAL)
-    file.close()
-    print("Cleanup done. Exiting.")
-    sys.exit(0)
+    try:
+        await nav_move.set_mode(Mode.MODE_MANUAL)
+    except:
+        file.close()
+        print("Cleanup done. Exiting.")
+        sys.exit(0)
 
 async def replay_cleanup_and_exit(nav_serv, base, file):
     """
@@ -167,7 +169,7 @@ def calculate_angle(p1, p2, p3):
 
     # Check for zero differences to avoid division by zero
     if np.isclose(delta_p1_p2[0], 0.0) or np.isclose(delta_p2_p3[0], 0.0):
-        return 180  # Return a straight line angle if there's no significant change in latitude
+        return 0  # Return a straight line angle if there's no significant change in latitude
 
     # Calculate the tangents
     tan1 = np.tan(delta_p1_p2[1]) / np.tan(delta_p1_p2[0])
@@ -226,21 +228,22 @@ async def log_waypoints(mode, file_path, robot, sample_period):
 
         # Filter out points with an angle less than WAYPOINT_ANGLE_MAX
         if len(prevPoints[0]) == 0:
-            prevPoints[0] = position[0]
+            prevPoints[0] = [position[0].latitude, position[0].longitude]
             file.write(logStr)
         else:
             if len(prevPoints[1]) != 0:
             # Calculate the angle between the three points
-                angle = calculate_angle(prevPoints[0], prevPoints[1], position[0])
-
+                angle = calculate_angle(prevPoints[0], prevPoints[1], [position[0].latitude, position[0].longitude])
+                print(f"Angle: {angle}")
                 # If the angle is greater than or equal to WAYPOINT_ANGLE_MAX, store position
                 #  Otherwise, replace the most recent point with the current position
                 if angle >= WAYPOINT_ANGLE_MAX:
                     prevPoints[0] = prevPoints[1]
                     file.write(prevLogStr)
             
-            prevPoints[1] = position[0]
-            
+            prevPoints[1] = [position[0].latitude, position[0].longitude]
+        
+        print(f"prevPoints: {prevPoints}")
         prevLogStr = logStr
         print(positionStr)
         
