@@ -37,8 +37,8 @@ async def main():
     imu = MovementSensor.from_robot(robot, "imu")
 
     while True:
-        imu_return_value = await imu.get_linear_acceleration()
-        print(f"imu get_linear_acceleration return value:\n{imu_return_value}")
+        imu_return_value = await imu.get_compass_heading()
+        print(f"imu get_compass_heading return value:\n{imu_return_value}")
         time.sleep(1)
   
     # # intermode-base

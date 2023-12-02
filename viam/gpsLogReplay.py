@@ -46,7 +46,7 @@ DEFAULT_SAMPLE_PERIOD_REPLAY = 1.0  # seconds
 MOVEMENT_SENSOR_NAME = "gps"
 NAVIGATION_SERVICE_NAME = "navServ"
 BASE_NAME = "intermode-base"
-WAYPOINT_ANGLE_MAX = 15  # degrees
+WAYPOINT_ANGLE_MAX = 30  # degrees
 
 
 # Function to establish a connection to the robot client

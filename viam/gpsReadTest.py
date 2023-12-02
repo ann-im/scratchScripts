@@ -26,5 +26,5 @@ def extract_coordinates_from_csv(file_path):
     return coordinates
 
 # Example usage:
-coordinates = extract_coordinates_from_csv('/mnt/c/Users/oneof/Documents/GitHub/scratchScripts/logs/gpsLog_20231125_14-25-16.csv')
+coordinates = extract_coordinates_from_csv('/mnt/c/Users/oneof/Documents/GitHub/scratchScripts/logs/gpsLog_20231128_13-58-23.csv')
 print(coordinates)
