@@ -29,6 +29,14 @@ def computeYaw(mag_x, mag_y, mag_z, accel_x, accel_y, accel_z):
     return math.atan2(vector_north.getX(), vector_north.getY()) * 180 / math.pi
 
 # Example usage
-yaw = computeYaw(-4.238, 29.081, 3.263, 0.005, -0.023, 0.999)
-print(yaw)
+x_mag = -1.17
+y_mag = 17.251
+z_mag = -27.456
+x_accel = 0.003
+y_accel = -0.009
+z_accel = 0.999
+yaw = computeYaw(x_mag, y_mag, z_mag, x_accel, y_accel, z_accel)
+print("WIT", yaw)
+yaw = computeYaw(y_mag, x_mag, z_mag, x_accel, y_accel, z_accel)
+print("Viam", yaw)
 
